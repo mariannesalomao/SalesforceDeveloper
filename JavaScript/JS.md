@@ -171,6 +171,12 @@
 
 ### DOM
 
+-----
+
+> Existem dois jeitos de capturar eventos, (gatilhos de eventos, event triggers) de **cima para baixo** (Event Capturing, captura de evento) e o outro é de **baixo para cima** (Event bubbling, bolha de evento)
+
+-----
+
 1. Event Delegation
 
 > É uma técnica para ouvir eventos em que você delega um elemento pai como ouvinte de todos os eventos que acontecem dentro dele.
@@ -324,3 +330,186 @@ E assim por diante até o DOM.
         ~function(){ /* codigo */ }()
         -function(){ /* codigo */ }()
         +function(){ /* codigo */ }()
+
+### CALL(), APPLY() & BIND()
+
+1. CALL()
+
+        this.name = 'Ana' // Ana
+
+        function sayName(age) {
+            this.age = age
+            console.log(this.name, this.age)         
+        }
+
+        const dev = {
+            name: 'Isabela'
+        }
+
+        console.log(sayName.call(this, 18)) // Ana 18
+        console.log(sayName.call(dev, 19)) // Isabela 19
+
+        console.log(this.age) // 18
+        console.log(dev.age) // 19
+
+> O **primeiro parâmetro que recebe é o valor de this que que será atribuído à função**. Os **demais parâmetros são os parâmetros da função** que invoca o método Call.
+
+> Outro exemplo:
+
+        function sayAnyCharacter() {  
+        console.log(this.name + ": " + this.character)
+        }
+        
+        var actor1 = {  
+        name:"Clint Eastwood",
+        character: "The Good"
+        }
+
+        var actor2 = {  
+        name:"Lee Van Cleef",
+        character: "The Bad"
+        }
+
+        // Clint Eastwood: The Good
+        sayAnyCharacter.call(actor1)
+
+        // Lee Van Cleef: The Bad
+        sayAnyCharacter.call(actor2)
+
+> O exemplo acima mostra uma capacidade interessante do JavaScript, ele é capaz de separar totalmente os dados do comportamento e ainda assim facilmente torná-los simultaneamente úteis pelo poder de combiná-los. Imagine que você tivesse um arquivo de dados JSON. A demonstração acima mostra que seria facilmente possível, através do método call, transformar dados em objetos ao conferir aos primeiros um comportamento desejado. Essa capacidade é uma das coisas que torna JavaScript tão interessante.
+
+-----
+
+> **Estrutura de dados são dados sem comportamento.**
+
+> **Função é comportamento sem dados.**
+
+> **Objetos são dados com comportamento(métodos).**
+
+-----
+
+> Exemplo de uso: Reaproveitar métodos nativos.
+
+> Os inputs retornados pelo seguinte trecho de código var inputs = document.getElementsByTagName("input") possuem a mesma estrutura de arrays, mas não possuem o método filter no qual estamos realmente interessados.
+
+> Sabemos que se inputs fosse realmente array tudo estaria resolvido. Mas existe uma segunda alternativa. Podemos aproveitar a estrutura do filter dos arrays, modificando apenas o objeto(this) que sofrerá a ação do método. E foi exatamente o que fizemos ao criar a função filterDomElements:
+
+        function filterDomElements(elements, filterCallback) {  
+                return Array.prototype.filter.call(elements, filterCallback) 
+        }
+
+> Ou ainda:
+
+        function filterDomElements(elements, filterCallback) {  
+                return [].filter.call(elements, filterCallback)
+        }
+
+
+2. APPLY()
+
+> Apply é o segundo método de funções capaz de alterar o valor this. Ele funciona exatamente como o método Call, porém seu segundo parâmetro recebe um Array ou Array-like dos parâmetros da função. Exemplo:
+
+        function sayThis(n1,n2){  
+        console.log(this * n1 * n2)
+        }
+
+        // 2 é this, n1 e n2 são 3
+        sayThis.apply(2, [3, 3]) // 18 
+
+        // 1 é this, n1 e n2 são 3
+        sayThis.apply(1, [3, 3]) // 9
+
+> O método apply é especialmente útil para se trabalhar com o Arguments Object (poder das Javascript Functions).
+
+> Douglas Crockford em uma de suas palestras propôs o seguinte exercício: "Escreva uma função que recebe uma outra função como parâmetro e a retorna de forma que ela só possa ser invocada uma única vez". Uma resolução:
+
+        function multiply() {
+        var length = arguments.length
+        var total = 1
+
+        if (length > 0) {
+                for(var i = 0; i < length; i += 1) {
+                total = total * arguments[i]
+                }
+                return console.log(total)
+        }
+        console.log(0)
+        }
+
+        function once(func) {
+                return function() {
+                        var f = func
+                        func = null
+                        return f.apply(this, arguments)
+                }
+        }
+
+        var multiply_once = once(multiply)
+        multiply_once(3, 4)  // 12
+        multiply_once(3, 4)  //Error: Cannot read property 'apply' of null
+
+3. BIND()
+
+> Ao contrário dos outros, ele não executa a função, mas retorna uma outra.
+
+> O primeiro argumento recebe o valor do this a ser usado na função a ser retornada. Os demais argumentos são os parâmetros que terão valores permanentemente atribuídos dentro da função a ser retornada.
+
+> Assim o método Bind acaba cumprindo dois papéis:
+
+- Mudar o valor do this;
+- Alterar o número de parâmetros de uma função, caso o programador deseje. Essa capacidade de alterar a quantidade de argumentos de uma função é chamada de Currying.
+
+        function sayThis(n1,n2){  
+        console.log(this * n1 * n2)
+        }
+
+        var thisIs2 = sayThis.bind(2)
+        var thisIs2N1Is3 = sayThis.bind(2,3)
+        var thisIs2N1Is3N2Is3 = sayThis.bind(2,3,3)
+        thisIs2(3,3) //18 - muda this  
+        thisIs2N1Is3(3) //18 - muda this e atribui n1  
+        thisIs2N1Is3N2Is3() //18 - muda this e atribui n1 e n2
+
+> Um bom exemplo de quando o método Bind se torna especialmente útil é quando você precisa manipular valores dentro de callbacks:
+
+        var handler = {
+        id:"handlerId",
+        click: function(event){
+                alert(this.id)
+        }
+        }
+
+        var button = document.getElementById('buttonId')
+        var button2 = document.getElementById('buttonId2')
+        button.addEventListener('click', handler.click)
+        button2.addEventListener('click', handler.click.bind(handler))
+
+### MVC
+
+> A **MODEL** seria o coração da sua aplicação. É nas models que vai ter as *regras de negócio*, vão ter as suas *entidades*, vai ter a sua *camada de acesso a dados*, *validações no back-end*.
+
+> A **VIEW** é responsável por renderizar a resposta
+
+> Uma boa analogia é a de um prédio. Vc está em frente a um prédio de uma grande empresa com um envelope (requisição) para entregar para uma pessoa que você nunca viu, vc só tem o nome dela.
+
+> A primeira coisa que vc encontra entrando no prédio é a recepcionista. Ela no caso será o próprio Framework MVC, ou em alguns contextos ela também será chamada de Front-Controler. É ele quem recebe a requisição primeiramente na sua aplicação.
+
+> Ele, o framework, pode ler metadados para saber e coordenar pra onde enviar essa requisição na sua aplicação.
+
+> O responsável por enviar sua requisição é o **Controller**. Ou seja, vc tem o framework que tem inteligência, que sabe distribuir esses requests dentro da aplicação, e quem leva a requisição e traz a resposta é o CONTROLLER.
+
+-----
+
+![](Pictures\7.png)
+
+1. Você tem o **browser** gerando uma requisição a partir de uma URL;
+
+2. Essa requisição vai bater no seu **web server** (que pode ser o TOMCAT, Engine Next, Apache...);
+
+3. Chegando no web server, a partir da URL, ele vai saber pra qual aplicação ele vai direcionar. Ele direciona para o alvo da requisição;
+
+4. E dentro da aplicação, o seu framework vai saber pra onde ele vai direcionar. Dentro da aplicação, a primeira camada que vai receber a requisição, no caso do modelo MVC, é o **controller**;
+
+-----
+
+![](Pictures\8.png)
