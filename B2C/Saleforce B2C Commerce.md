@@ -66,28 +66,26 @@
   Ou:
   
   - npm run build - Se você deseja executar todos os comandos acima.
+  
+### Estrutura do Site
+
+> Ao construir seu site, a ordem que você coleta e gera o produto subjacente, conteúdo e informações do qualificador promocional importa. Em geral, você deve primeiro criar seu catálogo, produto e informações de preço e, em seguida, criar um programa de marketing para promover seus produtos.
+
+1. Create the catalog and category structure, which determine site navigation.
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+2. Create the product information.
+   - Import or create product details, including:
+      * Product details       
+        * Products
+        * Product options
+        * Variation attributes
+        * Product sets
+        * Bundles
+        
+      * Product attributes
+      * Category assignments
+      * Images
+      * Inventory
+      
+      ... Link: https://documentation.b2c.commercecloud.salesforce.com/DOC1/index.jsp
